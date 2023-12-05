@@ -8,35 +8,108 @@
  * Finally, if it isn't over or under, then it must be equal, so let user know they are at their limit and show a warning.
 */
 
-import java.util.Scanner; // import scanner for us to use
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 public class Customers2 {
+    private JFrame frame;
+    private JTextField accNumField, beginBalField, totalNewField, totalPaidField, creditLimitField;
+    private JTextArea resultArea;
+
+    public Customers2() {
+        initialize();
+    }
+
+    private void initialize() {
+        frame = new JFrame("Credit Card Calculator");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setLayout(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+
+        // Setting common constraints for labels and fields
+        gbc.insets = new Insets(4, 4, 4, 4);
+        gbc.anchor = GridBagConstraints.EAST;
+        int rowIndex = 0;
+
+        accNumField = addLabelAndTextField("Account Number:", rowIndex++, 10);
+        beginBalField = addLabelAndTextField("Beginning Balance:", rowIndex++, 10);
+        totalNewField = addLabelAndTextField("New Charges:", rowIndex++, 10);
+        totalPaidField = addLabelAndTextField("Total Paid:", rowIndex++, 10);
+        creditLimitField = addLabelAndTextField("Credit Limit:", rowIndex++, 10);
+
+        JButton calculateButton = new JButton("Calculate");
+        calculateButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                calculateResult();
+            }
+        });
+        gbc.gridx = 1;
+        gbc.gridy = rowIndex++;
+        frame.add(calculateButton, gbc);
+
+        resultArea = new JTextArea(5, 30);
+        resultArea.setEditable(false);
+        gbc.gridx = 0;
+        gbc.gridy = rowIndex;
+        gbc.gridwidth = 2;
+        frame.add(new JScrollPane(resultArea), gbc);
+
+        frame.pack();
+        frame.setLocationRelativeTo(null); // Center the frame
+        frame.setVisible(true);
+    }
+
+    private JTextField addLabelAndTextField(String label, int row, int width) {
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(4, 4, 4, 4);
+        gbc.anchor = GridBagConstraints.EAST;
+        gbc.gridx = 0;
+        gbc.gridy = row;
+        frame.add(new JLabel(label), gbc);
+
+        JTextField textField = new JTextField(width);
+        gbc.gridx = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        frame.add(textField, gbc);
+
+        return textField;
+    }
+
+    private void calculateResult() {
+        try {
+            int accNum = Integer.parseInt(accNumField.getText());
+            double beginBal = Double.parseDouble(beginBalField.getText());
+            double totalNew = Double.parseDouble(totalNewField.getText());
+            double totalPaid = Double.parseDouble(totalPaidField.getText());
+            double creditLimit = Double.parseDouble(creditLimitField.getText());
+
+            double owedBal = beginBal + totalNew - totalPaid;
+            double overLimitBy = owedBal - creditLimit;
+            double availCredit = creditLimit - owedBal;
+
+            StringBuilder result = new StringBuilder();
+            result.append("Account Number: ").append(accNum).append("\n");
+            result.append(String.format("Ending Balance: $%.2f \n", owedBal));
+
+            if (owedBal > creditLimit) {
+                result.append(String.format("Credit Limit Exceeded by $%.2f", overLimitBy));
+            } else if (owedBal < creditLimit) {
+                result.append(String.format("Available Credit: $%.2f", availCredit));
+            } else {
+                result.append("Warning: You are at your credit limit.");
+            }
+
+            resultArea.setText(result.toString());
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(frame, "Invalid input. Please enter correct values.", "Input Error", JOptionPane.ERROR_MESSAGE);
+        }
+
+    }
+
     public static void main(String[] args) {
-        int accNum; // Initialize the accNum as int since it doesn't need decimal places
-        double beginBal, totalNew, totalPaid, owedBal, creditLimit ,overLimitBy, availCredit; // Initialize these as double since we are working with money
-
-        Scanner scan = new Scanner(System.in); //create new scanner object to use input
-
-        System.out.print("Please enter your account number: ");
-        accNum = scan.nextInt(); // check input for next Int and store it ass accNum
-        System.out.print("Please enter beginning monthly balance: ");
-        beginBal = scan.nextDouble(); // check input for next double and store as beginBal
-        System.out.print("Please enter new monthly charges: ");
-        totalNew = scan.nextDouble();
-        System.out.print("Please enter total already paid: ");
-        totalPaid = scan.nextDouble();
-        System.out.print("Please enter credit limit: ");
-        creditLimit = scan.nextDouble();
-
-        owedBal = (beginBal + totalNew - totalPaid); // owedBal is equal to beginning balance + new charges - total paid
-        overLimitBy = (owedBal - creditLimit); // calc over limit, owed balance minus the credit limit
-        availCredit = (creditLimit - owedBal); // calc avail credit, the limit minus owed
-
-        System.out.println("Account Number: " + accNum); // print out acc number, println is fine since we arent needing decimals
-        System.out.printf("Ending Balance: $%.2f \n", owedBal); // print out how much owed using printf and specify 2 decimal places
-
-        if (owedBal > creditLimit) System.out.printf("Credit Limit Exceeded by $%.2f", overLimitBy); // if credit limit exceeded, printf and show by how much
-        else if (owedBal < creditLimit) System.out.printf("Available Credit: $%.2f", availCredit); // if under limit, printf and show how much credit left
-        else System.out.print("Warning: You are at your credit limit."); // if not over or under then it must be equal to credit limit so print warning about being at limit
+        new Customers2();
     }
 }
